@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>원소 타일 생성기</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>원소 타일 생성기</h1>
+    <p class="guide">선택 방법: 원소 칸을 클릭하면 선택(파란색), 다시 클릭하면 해제됩니다.</p>
+
+    <section class="card">
+      <h2>1) 원소 선택</h2>
+      <div class="actions-row">
+        <button id="selectAllBtn" type="button">전체 선택</button>
+        <button id="clearAllBtn" type="button">전체 해제</button>
+      </div>
+      <div id="periodicTable" class="periodic-grid"></div>
+    </section>
+
+    <section class="card settings">
+      <h2>2) 기본 설정 (단위: mm)</h2>
+      <p>폰트: NanumGothic:style=Regular (고정)</p>
+      <label>타일 크기 (mm) <input id="tileSize" type="number" value="80" /></label>
+      <label>기호 크기 (mm) <input id="symbolSize" type="number" value="25" /></label>
+      <label>이름 크기 (mm) <input id="nameSize" type="number" value="7" /></label>
+      <label>원자번호 크기 (mm) <input id="atomicSize" type="number" value="7" /></label>
+      <label>원자량 크기 (mm) <input id="numberSize" type="number" value="7" /></label>
+    </section>
+
+    <section class="card">
+      <h2>3) 생성</h2>
+      <button id="generateBtn">SCAD ZIP 만들기</button>
+      <p class="guide">STL 변환: ZIP 압축 해제한 폴더에서 convert_to_stl.bat/.sh 실행 → 같은 폴더 안 stl 하위 폴더에 생성</p>
+      <pre id="log"></pre>
+    </section>
+  </main>
+
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
