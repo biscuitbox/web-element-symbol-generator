@@ -1,46 +1,720 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>원소 타일 생성기</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #070c12;
+      --bg2:        #0c1520;
+      --bg3:        #101c2a;
+      --bg4:        #152030;
+      --border:     rgba(0,210,255,0.10);
+      --border-hi:  rgba(0,210,255,0.30);
+      --cyan:       oklch(80% 0.17 198);
+      --cyan-dim:   oklch(58% 0.12 198);
+      --cyan-glow:  oklch(80% 0.17 198 / 0.22);
+      --text:       oklch(93% 0.008 220);
+      --text-muted: oklch(62% 0.015 220);
+      --text-dim:   oklch(42% 0.015 220);
+      --font-sans:  'Space Grotesk', sans-serif;
+      --font-mono:  'JetBrains Mono', monospace;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,210,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,210,255,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #root { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── HEADER ── */
+    .header {
+      border-bottom: 1px solid var(--border);
+      padding: 0 36px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      height: 60px;
+      background: rgba(7,12,18,0.90);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      flex-shrink: 0;
+    }
+    .header-icon {
+      width: 34px; height: 34px;
+      border: 1.5px solid var(--cyan);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 13px; font-weight: 700;
+      color: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan-glow);
+      letter-spacing: -1px;
+      flex-shrink: 0;
+    }
+    .header-titles { flex: 1; min-width: 0; }
+    .header-title {
+      font-size: 15px; font-weight: 600; letter-spacing: 0.01em;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .header-sub {
+      font-family: var(--font-mono); font-size: 10px;
+      color: var(--text-dim); letter-spacing: 0.10em; margin-top: 1px;
+    }
+    .header-pill {
+      font-family: var(--font-mono); font-size: 10px;
+      color: var(--cyan-dim);
+      border: 1px solid var(--border);
+      padding: 3px 10px; border-radius: 100px; letter-spacing: 0.06em;
+      white-space: nowrap; flex-shrink: 0;
+    }
+
+    /* ── LAYOUT ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 316px;
+      flex: 1;
+    }
+
+    /* ── MAIN PANEL ── */
+    .main-panel {
+      padding: 28px 28px 28px 36px;
+      border-right: 1px solid var(--border);
+      overflow-x: auto;
+      min-width: 0;
+    }
+
+    /* Section header */
+    .sec-hd {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 18px;
+    }
+    .sec-tag {
+      font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+      color: var(--cyan);
+      background: rgba(0,210,255,0.07);
+      border: 1px solid var(--border-hi);
+      border-radius: 4px; padding: 2px 8px; letter-spacing: 0.10em;
+    }
+    .sec-name {
+      font-size: 12px; font-weight: 600;
+      color: var(--text-muted); letter-spacing: 0.07em; text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .sec-actions { margin-left: auto; display: flex; gap: 8px; }
+
+    /* Buttons */
+    .btn {
+      font-family: var(--font-sans); font-size: 12px; font-weight: 500;
+      padding: 6px 14px; border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent; color: var(--text-muted);
+      cursor: pointer; letter-spacing: 0.03em;
+      transition: all 0.13s; white-space: nowrap;
+    }
+    .btn:hover {
+      border-color: var(--border-hi); color: var(--text);
+      background: rgba(0,210,255,0.05);
+    }
+    .btn-primary {
+      background: var(--cyan); color: #070c12;
+      border-color: var(--cyan); font-weight: 700;
+      padding: 11px 20px; font-size: 13px;
+      box-shadow: 0 0 18px var(--cyan-glow);
+      width: 100%;
+    }
+    .btn-primary:hover {
+      background: oklch(87% 0.17 198);
+      box-shadow: 0 0 28px oklch(80% 0.17 198 / 0.38);
+    }
+    .btn-primary:disabled {
+      opacity: 0.35; cursor: not-allowed; box-shadow: none;
+    }
+
+    /* ── PERIODIC TABLE ── */
+    .pt-wrap { min-width: 860px; }
+    .pt-grid {
+      display: grid;
+      grid-template-columns: repeat(18, minmax(44px, 1fr));
+      grid-template-rows: repeat(10, 50px);
+      gap: 3px;
+    }
+
+    .el {
+      border: 1px solid transparent;
+      border-radius: 4px;
+      padding: 3px 3px 2px;
+      cursor: pointer;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      transition: transform 0.11s, box-shadow 0.11s, background 0.11s;
+      position: relative;
+      overflow: hidden;
+    }
+    .el:hover { transform: scale(1.10); z-index: 20; }
+    .el-num {
+      font-family: var(--font-mono); font-size: 7.5px; font-weight: 400;
+      line-height: 1; color: inherit; opacity: 0.65; align-self: flex-start;
+    }
+    .el-sym {
+      font-family: var(--font-mono); font-size: 16px; font-weight: 700;
+      line-height: 1.1; color: inherit;
+    }
+    .el-kr {
+      font-size: 6px; font-weight: 400; line-height: 1;
+      color: inherit; opacity: 0.72; text-align: center;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+    }
+    .el-mass {
+      font-family: var(--font-mono); font-size: 5.5px; line-height: 1;
+      color: inherit; opacity: 0.50;
+    }
+
+    /* Selected */
+    .el.sel {
+      border-color: var(--cyan) !important;
+      background: rgba(0,210,255,0.13) !important;
+      box-shadow: 0 0 10px var(--cyan-glow), inset 0 0 6px rgba(0,210,255,0.08);
+    }
+    .el.sel .el-sym { color: var(--cyan); text-shadow: 0 0 7px var(--cyan); }
+    .el.sel .el-num, .el.sel .el-kr, .el.sel .el-mass { color: var(--cyan); }
+
+    /* Empty / placeholder */
+    .el-empty { pointer-events: none; background: transparent !important; border: none !important; }
+    .el-fblock-lbl {
+      pointer-events: none;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 15px;
+      color: var(--text-dim); opacity: 0.4;
+    }
+
+    /* Category palette */
+    .cat-alkali        { background: rgba(239,68,68,0.09);   color: #fca5a5; border-color: rgba(239,68,68,0.14); }
+    .cat-alkali-earth  { background: rgba(249,115,22,0.09);  color: #fdba74; border-color: rgba(249,115,22,0.14); }
+    .cat-transition    { background: rgba(234,179,8,0.07);   color: #fde68a; border-color: rgba(234,179,8,0.12); }
+    .cat-post          { background: rgba(34,197,94,0.08);   color: #86efac; border-color: rgba(34,197,94,0.12); }
+    .cat-metalloid     { background: rgba(20,184,166,0.09);  color: #5eead4; border-color: rgba(20,184,166,0.14); }
+    .cat-nonmetal      { background: rgba(56,189,248,0.09);  color: #7dd3fc; border-color: rgba(56,189,248,0.14); }
+    .cat-halogen       { background: rgba(99,102,241,0.10);  color: #a5b4fc; border-color: rgba(99,102,241,0.15); }
+    .cat-noble         { background: rgba(168,85,247,0.09);  color: #d8b4fe; border-color: rgba(168,85,247,0.14); }
+    .cat-lanthanide    { background: rgba(236,72,153,0.08);  color: #f9a8d4; border-color: rgba(236,72,153,0.12); }
+    .cat-actinide      { background: rgba(244,63,94,0.07);   color: #fda4af; border-color: rgba(244,63,94,0.10); }
+
+    .el:hover.cat-alkali        { background: rgba(239,68,68,0.20) !important; }
+    .el:hover.cat-alkali-earth  { background: rgba(249,115,22,0.20) !important; }
+    .el:hover.cat-transition    { background: rgba(234,179,8,0.16) !important; }
+    .el:hover.cat-post          { background: rgba(34,197,94,0.16) !important; }
+    .el:hover.cat-metalloid     { background: rgba(20,184,166,0.18) !important; }
+    .el:hover.cat-nonmetal      { background: rgba(56,189,248,0.18) !important; }
+    .el:hover.cat-halogen       { background: rgba(99,102,241,0.18) !important; }
+    .el:hover.cat-noble         { background: rgba(168,85,247,0.18) !important; }
+    .el:hover.cat-lanthanide    { background: rgba(236,72,153,0.15) !important; }
+    .el:hover.cat-actinide      { background: rgba(244,63,94,0.14) !important; }
+
+    /* Spacer row */
+    .pt-spacer { grid-column: 1 / -1; height: 8px; }
+
+    /* Legend */
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 6px 14px;
+      margin-top: 16px; padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 2px; }
+    .legend-label { font-size: 10.5px; color: var(--text-muted); }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      padding: 28px 24px;
+      display: flex; flex-direction: column; gap: 16px;
+      overflow-y: auto;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .panel-hd {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 14px; padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-title { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; white-space: nowrap; }
+    .panel-badge {
+      margin-left: auto;
+      font-family: var(--font-mono); font-size: 11px;
+      color: var(--cyan); background: rgba(0,210,255,0.08);
+      border: 1px solid var(--border); border-radius: 100px; padding: 1px 8px;
+    }
+
+    /* Selected chips */
+    .chips {
+      display: flex; flex-wrap: wrap; gap: 4px;
+      max-height: 88px; overflow-y: auto;
+    }
+    .chips::-webkit-scrollbar { width: 3px; }
+    .chips::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .chip {
+      font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+      color: var(--cyan); background: rgba(0,210,255,0.07);
+      border: 1px solid var(--border-hi); border-radius: 3px;
+      padding: 2px 6px; cursor: pointer; transition: background 0.1s;
+    }
+    .chip:hover { background: rgba(0,210,255,0.15); }
+    .chips-empty { font-size: 12px; color: var(--text-dim); font-style: italic; }
+
+    /* Settings */
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-label { font-size: 12px; color: var(--text-muted); font-weight: 500; white-space: nowrap; }
+    .setting-right { display: flex; align-items: center; gap: 5px; }
+    .setting-input {
+      width: 70px;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 5px; color: var(--text);
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      padding: 5px 8px; text-align: right;
+      transition: border-color 0.13s, box-shadow 0.13s; outline: none;
+    }
+    .setting-input:focus {
+      border-color: var(--cyan-dim);
+      box-shadow: 0 0 0 2px rgba(0,210,255,0.09);
+    }
+    .setting-unit { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
+
+    /* Font tag */
+    .font-tag {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 11px; background: var(--bg3);
+      border: 1px solid var(--border); border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .font-tag-label { font-size: 11px; color: var(--text-dim); }
+    .font-tag-val {
+      font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted);
+      margin-left: auto; letter-spacing: 0.02em;
+    }
+
+    /* Generate hint */
+    .gen-hint {
+      font-family: var(--font-mono); font-size: 10px; color: var(--text-dim);
+      line-height: 1.65; margin-bottom: 12px;
+      padding: 10px 12px; background: var(--bg3);
+      border: 1px solid var(--border); border-radius: 6px;
+    }
+    .gen-hint strong { color: var(--text-muted); font-weight: 600; }
+
+    /* Log */
+    .log-wrap {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 6px; padding: 10px 12px;
+      max-height: 120px; overflow-y: auto;
+      font-family: var(--font-mono); font-size: 10.5px;
+      color: var(--text-muted); line-height: 1.7;
+    }
+    .log-wrap::-webkit-scrollbar { width: 3px; }
+    .log-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .log-line-ok   { color: oklch(75% 0.15 150); }
+    .log-line-warn { color: oklch(80% 0.17 50); }
+    .log-line-info { color: var(--text-muted); }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 28px; left: 50%;
+      transform: translateX(-50%) translateY(72px);
+      background: var(--bg2); border: 1px solid var(--border-hi);
+      border-radius: 8px; padding: 11px 18px;
+      font-size: 13px; color: var(--text);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.55);
+      z-index: 9999;
+      transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+      white-space: nowrap; pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* Scrollbar global */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: rgba(0,210,255,0.18); border-radius: 3px; }
+  </style>
 </head>
 <body>
-  <main class="container">
-    <h1>원소 타일 생성기</h1>
-    <p class="guide">선택 방법: 원소 칸을 클릭하면 선택(파란색), 다시 클릭하면 해제됩니다.</p>
+<div id="root"></div>
 
-    <section class="card">
-      <h2>1) 원소 선택</h2>
-      <div class="actions-row">
-        <button id="selectAllBtn" type="button">전체 선택</button>
-        <button id="clearAllBtn" type="button">전체 해제</button>
+<script type="text/babel">
+const { useState, useCallback, useRef, useMemo } = React;
+
+/* ── Element data (matches app.js exactly) ────────────────────────────── */
+const E_RAW = [
+[1,'H',1,1],[2,'He',1,18],[3,'Li',2,1],[4,'Be',2,2],[5,'B',2,13],[6,'C',2,14],[7,'N',2,15],[8,'O',2,16],[9,'F',2,17],[10,'Ne',2,18],
+[11,'Na',3,1],[12,'Mg',3,2],[13,'Al',3,13],[14,'Si',3,14],[15,'P',3,15],[16,'S',3,16],[17,'Cl',3,17],[18,'Ar',3,18],
+[19,'K',4,1],[20,'Ca',4,2],[21,'Sc',4,3],[22,'Ti',4,4],[23,'V',4,5],[24,'Cr',4,6],[25,'Mn',4,7],[26,'Fe',4,8],[27,'Co',4,9],[28,'Ni',4,10],[29,'Cu',4,11],[30,'Zn',4,12],[31,'Ga',4,13],[32,'Ge',4,14],[33,'As',4,15],[34,'Se',4,16],[35,'Br',4,17],[36,'Kr',4,18],
+[37,'Rb',5,1],[38,'Sr',5,2],[39,'Y',5,3],[40,'Zr',5,4],[41,'Nb',5,5],[42,'Mo',5,6],[43,'Tc',5,7],[44,'Ru',5,8],[45,'Rh',5,9],[46,'Pd',5,10],[47,'Ag',5,11],[48,'Cd',5,12],[49,'In',5,13],[50,'Sn',5,14],[51,'Sb',5,15],[52,'Te',5,16],[53,'I',5,17],[54,'Xe',5,18],
+[55,'Cs',6,1],[56,'Ba',6,2],
+[57,'La',8,4],[58,'Ce',8,5],[59,'Pr',8,6],[60,'Nd',8,7],[61,'Pm',8,8],[62,'Sm',8,9],[63,'Eu',8,10],[64,'Gd',8,11],[65,'Tb',8,12],[66,'Dy',8,13],[67,'Ho',8,14],[68,'Er',8,15],[69,'Tm',8,16],[70,'Yb',8,17],[71,'Lu',8,18],
+[72,'Hf',6,4],[73,'Ta',6,5],[74,'W',6,6],[75,'Re',6,7],[76,'Os',6,8],[77,'Ir',6,9],[78,'Pt',6,10],[79,'Au',6,11],[80,'Hg',6,12],[81,'Tl',6,13],[82,'Pb',6,14],[83,'Bi',6,15],[84,'Po',6,16],[85,'At',6,17],[86,'Rn',6,18],
+[87,'Fr',7,1],[88,'Ra',7,2],
+[89,'Ac',9,4],[90,'Th',9,5],[91,'Pa',9,6],[92,'U',9,7],[93,'Np',9,8],[94,'Pu',9,9],[95,'Am',9,10],[96,'Cm',9,11],[97,'Bk',9,12],[98,'Cf',9,13],[99,'Es',9,14],[100,'Fm',9,15],[101,'Md',9,16],[102,'No',9,17],[103,'Lr',9,18],
+[104,'Rf',7,4],[105,'Db',7,5],[106,'Sg',7,6],[107,'Bh',7,7],[108,'Hs',7,8],[109,'Mt',7,9],[110,'Ds',7,10],[111,'Rg',7,11],[112,'Cn',7,12],[113,'Nh',7,13],[114,'Fl',7,14],[115,'Mc',7,15],[116,'Lv',7,16],[117,'Ts',7,17],[118,'Og',7,18]
+];
+
+const AW = {H:'1.008',He:'4.0026',Li:'6.94',Be:'9.0122',B:'10.81',C:'12.011',N:'14.007',O:'15.999',F:'18.998',Ne:'20.180',Na:'22.990',Mg:'24.305',Al:'26.982',Si:'28.085',P:'30.974',S:'32.06',Cl:'35.45',Ar:'39.948',K:'39.098',Ca:'40.078',Sc:'44.956',Ti:'47.867',V:'50.942',Cr:'51.996',Mn:'54.938',Fe:'55.845',Co:'58.933',Ni:'58.693',Cu:'63.546',Zn:'65.38',Ga:'69.723',Ge:'72.630',As:'74.922',Se:'78.971',Br:'79.904',Kr:'83.798',Rb:'85.468',Sr:'87.62',Y:'88.906',Zr:'91.224',Nb:'92.906',Mo:'95.95',Tc:'98',Ru:'101.07',Rh:'102.91',Pd:'106.42',Ag:'107.87',Cd:'112.41',In:'114.82',Sn:'118.71',Sb:'121.76',Te:'127.60',I:'126.90',Xe:'131.29',Cs:'132.91',Ba:'137.33',La:'138.91',Ce:'140.12',Pr:'140.91',Nd:'144.24',Pm:'145',Sm:'150.36',Eu:'151.96',Gd:'157.25',Tb:'158.93',Dy:'162.50',Ho:'164.93',Er:'167.26',Tm:'168.93',Yb:'173.05',Lu:'174.97',Hf:'178.49',Ta:'180.95',W:'183.84',Re:'186.21',Os:'190.23',Ir:'192.22',Pt:'195.08',Au:'196.97',Hg:'200.59',Tl:'204.38',Pb:'207.2',Bi:'208.98',Po:'209',At:'210',Rn:'222',Fr:'223',Ra:'226',Ac:'227',Th:'232.04',Pa:'231.04',U:'238.03',Np:'237',Pu:'244',Am:'243',Cm:'247',Bk:'247',Cf:'251',Es:'252',Fm:'257',Md:'258',No:'259',Lr:'262',Rf:'267',Db:'268',Sg:'271',Bh:'270',Hs:'277',Mt:'278',Ds:'281',Rg:'282',Cn:'285',Nh:'286',Fl:'289',Mc:'290',Lv:'293',Ts:'294',Og:'294'};
+
+const KR = {H:'수소',He:'헬륨',Li:'리튬',Be:'베릴륨',B:'붕소',C:'탄소',N:'질소',O:'산소',F:'플루오린',Ne:'네온',Na:'나트륨',Mg:'마그네슘',Al:'알루미늄',Si:'규소',P:'인',S:'황',Cl:'염소',Ar:'아르곤',K:'칼륨',Ca:'칼슘',Sc:'스칸듐',Ti:'티타늄',V:'바나듐',Cr:'크로뮴',Mn:'망가니즈',Fe:'철',Co:'코발트',Ni:'니켈',Cu:'구리',Zn:'아연',Ga:'갈륨',Ge:'게르마늄',As:'비소',Se:'셀레늄',Br:'브로민',Kr:'크립톤',Rb:'루비듐',Sr:'스트론튬',Y:'이트륨',Zr:'지르코늄',Nb:'나이오븀',Mo:'몰리브데넘',Tc:'테크네튬',Ru:'루테늄',Rh:'로듐',Pd:'팔라듐',Ag:'은',Cd:'카드뮴',In:'인듐',Sn:'주석',Sb:'안티모니',Te:'텔루륨',I:'아이오딘',Xe:'제논',Cs:'세슘',Ba:'바륨',La:'란타넘',Ce:'세륨',Pr:'프라세오디뮴',Nd:'네오디뮴',Pm:'프로메튬',Sm:'사마륨',Eu:'유로퓸',Gd:'가돌리늄',Tb:'터븀',Dy:'디스프로슘',Ho:'홀뮴',Er:'어븀',Tm:'툴륨',Yb:'이터븀',Lu:'루테튬',Hf:'하프늄',Ta:'탄탈럼',W:'텅스텐',Re:'레늄',Os:'오스뮴',Ir:'이리듐',Pt:'백금',Au:'금',Hg:'수은',Tl:'탈륨',Pb:'납',Bi:'비스무트',Po:'폴로늄',At:'아스타틴',Rn:'라돈',Fr:'프랑슘',Ra:'라듐',Ac:'악티늄',Th:'토륨',Pa:'프로트악티늄',U:'우라늄',Np:'넵투늄',Pu:'플루토늄',Am:'아메리슘',Cm:'퀴륨',Bk:'버클륨',Cf:'캘리포늄',Es:'아인슈타이늄',Fm:'페르뮴',Md:'멘델레븀',No:'노벨륨',Lr:'로렌슘',Rf:'러더포듐',Db:'더브늄',Sg:'시보귬',Bh:'보륨',Hs:'하슘',Mt:'마이트너륨',Ds:'다름슈타튬',Rg:'뢴트게늄',Cn:'코페르니슘',Nh:'니호늄',Fl:'플레로븀',Mc:'모스코븀',Lv:'리버모륨',Ts:'테네신',Og:'오가네손'};
+
+// Category by atomic number
+const CAT = {};
+const catMap = [
+  ['alkali',       [3,11,19,37,55,87]],
+  ['alkali-earth', [4,12,20,38,56,88]],
+  ['lanthanide',   [57,58,59,60,61,62,63,64,65,66,67,68,69,70,71]],
+  ['actinide',     [89,90,91,92,93,94,95,96,97,98,99,100,101,102,103]],
+  ['transition',   [21,22,23,24,25,26,27,28,29,30,39,40,41,42,43,44,45,46,47,48,72,73,74,75,76,77,78,79,80,104,105,106,107,108,109,110,111,112]],
+  ['post',         [13,31,32,49,50,81,82,83,84,113,114,115,116]],
+  ['metalloid',    [5,14,32,33,51,52,84]],
+  ['halogen',      [9,17,35,53,85,117]],
+  ['noble',        [2,10,18,36,54,86,118]],
+  ['nonmetal',     [1,6,7,8,15,16,34]],
+];
+catMap.forEach(([cat, nums]) => nums.forEach(n => CAT[n] = cat));
+
+const CAT_LABELS = {
+  alkali: '알칼리 금속', 'alkali-earth': '알칼리 토금속',
+  transition: '전이 금속', post: '전이 후 금속',
+  metalloid: '준금속', nonmetal: '비금속',
+  halogen: '할로젠', noble: '비활성 기체',
+  lanthanide: '란타넘족', actinide: '악티늄족',
+};
+const CAT_COLORS = {
+  alkali:'#fca5a5','alkali-earth':'#fdba74',transition:'#fde68a',post:'#86efac',
+  metalloid:'#5eead4',nonmetal:'#7dd3fc',halogen:'#a5b4fc',noble:'#d8b4fe',
+  lanthanide:'#f9a8d4',actinide:'#fda4af',
+};
+
+/* ── SCAD generation (identical to app.js) ─────────────────────────── */
+const MODEL_BODY = `corner_radius = 5;
+base_thickness = 4;
+frame_width = 1.8;
+frame_height = 0.6;
+text_height = 0.6;
+slot_width = 25; slot_height = 2.0; slot_depth = 3.0; slot_z = 1.2;
+fit_clearance = 0.15; connector_length = slot_width - 0.2; connector_height = slot_height - fit_clearance;
+connector_depth = 2*(slot_depth - fit_clearance); connector_gap = 8; connector_corner = 0.6;
+atomic_x = -28; atomic_y = 28; symbol_x = 0; symbol_y = 9; name_x = 0; name_y = -16; number_x = 0; number_y = -28;
+module rounded_square(sz, r) { offset(r = r) square([sz - 2*r, sz - 2*r], center = true); }
+module outer_shape_2d() { rounded_square(tile_size, corner_radius); }
+frame_inset = 0.25;
+module outer_frame_2d() { difference() { offset(delta = -frame_inset) outer_shape_2d(); offset(delta = -(frame_inset + frame_width)) outer_shape_2d(); } }
+module base_body() { linear_extrude(height = base_thickness) outer_shape_2d(); }
+module top_outer_frame() { translate([0,0,base_thickness]) linear_extrude(height = frame_height) outer_frame_2d(); }
+module left_slot() { translate([-tile_size/2 - 0.1, -slot_width/2, slot_z]) cube([slot_depth + 0.2, slot_width, slot_height]); }
+module right_slot() { translate([tile_size/2 - slot_depth + 0.1, -slot_width/2, slot_z]) cube([slot_depth + 0.2, slot_width, slot_height]); }
+module texts() {
+ translate([atomic_x, atomic_y, base_thickness]) linear_extrude(height = text_height) text(atomic_number, size = atomic_size, halign = "center", valign = "center", font = font_name);
+ translate([symbol_x, symbol_y, base_thickness]) linear_extrude(height = text_height) text(symbol, size = symbol_size, halign = "center", valign = "center", font = font_name);
+ translate([name_x, name_y, base_thickness]) linear_extrude(height = text_height) text(name, size = name_size, halign = "center", valign = "center", font = font_name);
+ translate([number_x, number_y, base_thickness]) linear_extrude(height = text_height) text(number, size = number_size, halign = "center", valign = "center", font = font_name);
+}
+module tile() { difference() { union() { base_body(); top_outer_frame(); texts(); } left_slot(); right_slot(); } }
+if (show_tile) tile();`;
+
+function makeScad([z, s], o) {
+  const n = KR[s] || s;
+  const w = AW[s] || String(z);
+  return `symbol = "${s}";\nname = "${n}";\nnumber = "${w}";\natomic_number = "${z}";\nfont_name = "${o.fontName}";\nshow_tile = true;\nshow_connector = false;\ntile_size = ${o.tileSize};\nsymbol_size = ${o.symbolSize};\nname_size = ${o.nameSize};\nnumber_size = ${o.numberSize};\natomic_size = ${o.atomicSize};\n${MODEL_BODY}\n`;
+}
+
+const BAT = `@echo off\r\nset OPENSCAD_EXE=C:\\Program Files\\OpenSCAD\\openscad.exe\r\nif not exist "%OPENSCAD_EXE%" (\r\n  echo OpenSCAD 경로를 찾을 수 없습니다: %OPENSCAD_EXE%\r\n  echo convert_to_stl.bat 파일에서 경로를 수정하세요.\r\n  pause\r\n  exit /b 1\r\n)\r\nif not exist stl mkdir stl\r\nfor %%f in (*.scad) do (\r\n  "%OPENSCAD_EXE%" -o "stl\\%%~nf.stl" "%%f"\r\n)\r\necho 완료: %cd%\\stl 폴더 확인\r\npause\r\n`;
+const SH  = `#!/usr/bin/env bash\nset -euo pipefail\ncommand -v openscad >/dev/null || { echo "OpenSCAD 없음"; exit 1; }\nmkdir -p stl\nfor f in *.scad; do b="\${f%.scad}"; openscad -o "stl/\${b}.stl" "\$f"; done\necho "완료: \$(pwd)/stl 폴더 확인"\n`;
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "showKorean": true,
+  "showMass": true
+}/*EDITMODE-END*/;
+
+/* ── App ──────────────────────────────────────────────────────────── */
+function App() {
+  const [selected, setSelected] = useState(new Set());
+  const [settings, setSettings] = useState({ tileSize:80, symbolSize:25, nameSize:7, atomicSize:7, numberSize:7 });
+  const [logs, setLogs]         = useState([]);
+  const [toast, setToast]       = useState({ show:false, msg:'' });
+  const [generating, setGenerating] = useState(false);
+  const [tweaks, setTweak]      = useTweaks(TWEAK_DEFAULTS);
+  const toastTimer = useRef(null);
+
+  const showToast = (msg) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ show:true, msg });
+    toastTimer.current = setTimeout(() => setToast(t => ({...t, show:false})), 2600);
+  };
+
+  const toggle = useCallback((z) => {
+    setSelected(prev => { const n = new Set(prev); n.has(z) ? n.delete(z) : n.add(z); return n; });
+  }, []);
+
+  const selectAll = () => { setSelected(new Set(E_RAW.map(e=>e[0]))); showToast(`전체 ${E_RAW.length}개 원소 선택됨`); };
+  const clearAll  = () => { setSelected(new Set()); showToast('선택 해제됨'); };
+
+  const setSetting = (key, val) => {
+    const n = parseFloat(val);
+    if (!isNaN(n) && n > 0) setSettings(prev => ({...prev, [key]: n}));
+  };
+
+  const handleGenerate = async () => {
+    if (selected.size === 0) { showToast('⚠ 원소를 먼저 선택하세요'); return; }
+    setGenerating(true);
+    setLogs([]);
+    const o = { fontName:'NanumGothic:style=Regular', ...settings };
+    const zip = new JSZip();
+    const newLogs = [];
+    E_RAW.filter(e => selected.has(e[0])).forEach(e => {
+      zip.file(`${e[0]}_${e[1]}.scad`, makeScad(e, o));
+      newLogs.push({ type:'ok', text:`추가됨: ${e[0]}_${e[1]}.scad` });
+    });
+    zip.file('convert_to_stl.bat', BAT);
+    zip.file('convert_to_stl.sh',  SH);
+    setLogs(newLogs);
+    const blob = await zip.generateAsync({ type:'blob' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'element_scad_files.zip';
+    a.click();
+    showToast(`✓ ${selected.size}개 파일 ZIP 생성 완료`);
+    setGenerating(false);
+  };
+
+  /* Build grid: 9 rows (rows 1-7 main, row 8=f-block lant, row 9=actinide) */
+  const gridCells = useMemo(() => {
+    const map = {};
+    E_RAW.forEach(e => { map[`${e[2]}-${e[3]}`] = e; });
+    const cells = [];
+    for (let r = 1; r <= 9; r++) {
+      // Insert visual gap between row 7 and f-block
+      if (r === 8) {
+        cells.push(<div key="gap" style={{ gridColumn:'1 / -1', gridRow:'8', height:'6px' }} />);
+        // f-block row label (col 1-3)
+        cells.push(<div key="lant-ast" className="el el-empty el-fblock-lbl" style={{ gridColumn:3, gridRow:8 }}>*</div>);
+      }
+      if (r === 9) {
+        cells.push(<div key="act-ast" className="el el-empty el-fblock-lbl" style={{ gridColumn:3, gridRow:9 }}>*</div>);
+      }
+      for (let c = 1; c <= 18; c++) {
+        const e = map[`${r}-${c}`];
+        // La bridge cell (row 6 col 3)
+        if (r === 6 && c === 3) {
+          cells.push(<div key="la-bridge" className="el el-empty cat-lanthanide" style={{ gridColumn:3, gridRow:6, opacity:0.4 }}><span style={{fontFamily:'var(--font-mono)',fontSize:'14px'}}>*</span></div>);
+          continue;
+        }
+        // Ac bridge cell (row 7 col 3)
+        if (r === 7 && c === 3) {
+          cells.push(<div key="ac-bridge" className="el el-empty cat-actinide" style={{ gridColumn:3, gridRow:7, opacity:0.4 }}><span style={{fontFamily:'var(--font-mono)',fontSize:'14px'}}>*</span></div>);
+          continue;
+        }
+        if (!e) {
+          cells.push(<div key={`emp-${r}-${c}`} className="el el-empty" style={{ gridColumn:c, gridRow:r }} />);
+          continue;
+        }
+        const [z, sym] = e;
+        const cat = CAT[z] || 'nonmetal';
+        const isSel = selected.has(z);
+        cells.push(
+          <div
+            key={z}
+            className={`el cat-${cat}${isSel ? ' sel' : ''}`}
+            style={{ gridColumn:c, gridRow:r }}
+            onClick={() => toggle(z)}
+            title={`${z} ${sym} — ${KR[sym] || sym} (${AW[sym] || z})`}
+          >
+            <span className="el-num">{z}</span>
+            <span className="el-sym">{sym}</span>
+            {tweaks.showKorean && <span className="el-kr">{KR[sym] || ''}</span>}
+            {tweaks.showMass   && <span className="el-mass">{AW[sym] || ''}</span>}
+          </div>
+        );
+      }
+    }
+    return cells;
+  }, [selected, tweaks.showKorean, tweaks.showMass, toggle]);
+
+  const selList = E_RAW.filter(e => selected.has(e[0]));
+
+  return (
+    <>
+      {/* Header */}
+      <header className="header">
+        <div className="header-icon">Fe</div>
+        <div className="header-titles">
+          <div className="header-title">원소 타일 생성기</div>
+          <div className="header-sub">ELEMENT TILE GENERATOR · SCAD / STL OUTPUT</div>
+        </div>
+        <div className="header-pill">118 ELEMENTS</div>
+      </header>
+
+      {/* Main layout */}
+      <div className="layout">
+        {/* Periodic table */}
+        <div className="main-panel">
+          <div className="sec-hd">
+            <span className="sec-tag">01</span>
+            <span className="sec-name">원소 선택</span>
+            <div className="sec-actions">
+              <button className="btn" onClick={selectAll}>전체 선택</button>
+              <button className="btn" onClick={clearAll}>전체 해제</button>
+            </div>
+          </div>
+
+          <div className="pt-wrap">
+            <div className="pt-grid">{gridCells}</div>
+
+            {/* Legend */}
+            <div className="legend">
+              {Object.entries(CAT_LABELS).map(([cat, label]) => (
+                <div key={cat} className="legend-item">
+                  <div className="legend-dot" style={{ background: CAT_COLORS[cat], opacity:0.75 }} />
+                  <span className="legend-label">{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <div className="sidebar">
+          {/* Selected elements */}
+          <div className="panel">
+            <div className="panel-hd">
+              <span className="sec-tag">02</span>
+              <span className="panel-title">선택된 원소</span>
+              <span className="panel-badge">{selected.size} / 118</span>
+            </div>
+            {selList.length === 0
+              ? <p className="chips-empty">원소를 클릭해 선택하세요</p>
+              : (
+                <div className="chips">
+                  {selList.map(e => (
+                    <span key={e[0]} className="chip" onClick={() => toggle(e[0])} title="클릭해 해제">{e[1]}</span>
+                  ))}
+                </div>
+              )
+            }
+          </div>
+
+          {/* Settings */}
+          <div className="panel">
+            <div className="panel-hd">
+              <span className="sec-tag">03</span>
+              <span className="panel-title">기본 설정</span>
+            </div>
+            <div className="font-tag">
+              <span className="font-tag-label">폰트</span>
+              <span className="font-tag-val">NanumGothic:Regular</span>
+            </div>
+            {[
+              ['타일 크기',    'tileSize'],
+              ['기호 크기',    'symbolSize'],
+              ['이름 크기',    'nameSize'],
+              ['원자번호 크기','atomicSize'],
+              ['원자량 크기',  'numberSize'],
+            ].map(([label, key]) => (
+              <div key={key} className="setting-row">
+                <span className="setting-label">{label}</span>
+                <div className="setting-right">
+                  <input
+                    type="number" className="setting-input"
+                    value={settings[key]} min="0.5" step="0.5"
+                    onChange={e => setSetting(key, e.target.value)}
+                  />
+                  <span className="setting-unit">mm</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Generate */}
+          <div className="panel">
+            <div className="panel-hd" style={{ marginBottom:'12px' }}>
+              <span className="sec-tag">04</span>
+              <span className="panel-title">생성</span>
+            </div>
+            <div className="gen-hint">
+              <strong>① SCAD ZIP 다운로드</strong><br />
+              ② ZIP 압축 해제<br />
+              ③ convert_to_stl<strong>.bat</strong> (Windows) 또는 <strong>.sh</strong> (Mac/Linux) 실행<br />
+              ④ stl 하위 폴더에서 STL 확인
+            </div>
+            <button
+              className="btn btn-primary"
+              onClick={handleGenerate}
+              disabled={selected.size === 0 || generating}
+            >
+              {generating ? '생성 중…' : `⬇  SCAD ZIP 만들기 (${selected.size}개)`}
+            </button>
+
+            {logs.length > 0 && (
+              <div className="log-wrap" style={{ marginTop:'10px' }}>
+                {logs.map((l, i) => (
+                  <div key={i} className={`log-line-${l.type}`}>{l.text}</div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-      <div id="periodicTable" class="periodic-grid"></div>
-    </section>
 
-    <section class="card settings">
-      <h2>2) 기본 설정 (단위: mm)</h2>
-      <p>폰트: NanumGothic:style=Regular (고정)</p>
-      <label>타일 크기 (mm) <input id="tileSize" type="number" value="80" /></label>
-      <label>기호 크기 (mm) <input id="symbolSize" type="number" value="25" /></label>
-      <label>이름 크기 (mm) <input id="nameSize" type="number" value="7" /></label>
-      <label>원자번호 크기 (mm) <input id="atomicSize" type="number" value="7" /></label>
-      <label>원자량 크기 (mm) <input id="numberSize" type="number" value="7" /></label>
-    </section>
+      {/* Toast */}
+      <div className={`toast${toast.show ? ' show' : ''}`}>{toast.msg}</div>
 
-    <section class="card">
-      <h2>3) 생성</h2>
-      <button id="generateBtn">SCAD ZIP 만들기</button>
-      <p class="guide">STL 변환: ZIP 압축 해제한 폴더에서 convert_to_stl.bat/.sh 실행 → 같은 폴더 안 stl 하위 폴더에 생성</p>
-      <pre id="log"></pre>
-    </section>
-  </main>
+      {/* Tweaks */}
+      <TweaksPanel>
+        <TweakSection title="표시 옵션" />
+        <TweakToggle label="한글 원소 이름" tweakKey="showKorean" />
+        <TweakToggle label="원자량" tweakKey="showMass" />
+      </TweaksPanel>
+    </>
+  );
+}
 
-  
-
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="app.js"></script>
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
 </body>
 </html>
