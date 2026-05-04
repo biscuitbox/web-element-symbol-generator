@@ -11,197 +11,113 @@
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
-  <script type="text/babel" src="tweaks-panel.jsx"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg:         #070c12;
-      --bg2:        #0c1520;
-      --bg3:        #101c2a;
-      --bg4:        #152030;
-      --border:     rgba(0,210,255,0.10);
-      --border-hi:  rgba(0,210,255,0.30);
-      --cyan:       oklch(80% 0.17 198);
-      --cyan-dim:   oklch(58% 0.12 198);
-      --cyan-glow:  oklch(80% 0.17 198 / 0.22);
-      --text:       oklch(93% 0.008 220);
-      --text-muted: oklch(62% 0.015 220);
-      --text-dim:   oklch(42% 0.015 220);
-      --font-sans:  'Space Grotesk', sans-serif;
-      --font-mono:  'JetBrains Mono', monospace;
+      --bg:        #070c12;
+      --bg2:       #0c1520;
+      --bg3:       #101c2a;
+      --border:    rgba(0,210,255,0.10);
+      --border-hi: rgba(0,210,255,0.30);
+      --cyan:      oklch(80% 0.17 198);
+      --cyan-dim:  oklch(58% 0.12 198);
+      --cyan-glow: oklch(80% 0.17 198 / 0.22);
+      --text:      oklch(93% 0.008 220);
+      --text-muted:oklch(62% 0.015 220);
+      --text-dim:  oklch(42% 0.015 220);
+      --font-sans: 'Space Grotesk', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
     }
-
     html, body { height: 100%; }
-
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-sans);
-      overflow-x: hidden;
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); overflow-x: hidden;
     }
-
     body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
+      content: ''; position: fixed; inset: 0;
       background-image:
         linear-gradient(rgba(0,210,255,0.025) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0,210,255,0.025) 1px, transparent 1px);
-      background-size: 48px 48px;
-      pointer-events: none;
-      z-index: 0;
+      background-size: 48px 48px; pointer-events: none; z-index: 0;
     }
-
     #root { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
 
-    /* ── HEADER ── */
+    /* Header */
     .header {
-      border-bottom: 1px solid var(--border);
-      padding: 0 36px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      height: 60px;
-      background: rgba(7,12,18,0.90);
-      backdrop-filter: blur(16px);
-      position: sticky;
-      top: 0;
-      z-index: 200;
-      flex-shrink: 0;
+      border-bottom: 1px solid var(--border); padding: 0 36px;
+      display: flex; align-items: center; gap: 16px; height: 60px;
+      background: rgba(7,12,18,0.90); backdrop-filter: blur(16px);
+      position: sticky; top: 0; z-index: 200; flex-shrink: 0;
     }
     .header-icon {
-      width: 34px; height: 34px;
-      border: 1.5px solid var(--cyan);
-      border-radius: 7px;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-mono);
-      font-size: 13px; font-weight: 700;
-      color: var(--cyan);
-      box-shadow: 0 0 12px var(--cyan-glow);
-      letter-spacing: -1px;
-      flex-shrink: 0;
+      width: 34px; height: 34px; border: 1.5px solid var(--cyan);
+      border-radius: 7px; display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+      color: var(--cyan); box-shadow: 0 0 12px var(--cyan-glow);
+      letter-spacing: -1px; flex-shrink: 0;
     }
     .header-titles { flex: 1; min-width: 0; }
-    .header-title {
-      font-size: 15px; font-weight: 600; letter-spacing: 0.01em;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .header-sub {
-      font-family: var(--font-mono); font-size: 10px;
-      color: var(--text-dim); letter-spacing: 0.10em; margin-top: 1px;
-    }
+    .header-title { font-size: 15px; font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; }
+    .header-sub { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.10em; margin-top: 1px; }
     .header-pill {
-      font-family: var(--font-mono); font-size: 10px;
-      color: var(--cyan-dim);
-      border: 1px solid var(--border);
-      padding: 3px 10px; border-radius: 100px; letter-spacing: 0.06em;
-      white-space: nowrap; flex-shrink: 0;
+      font-family: var(--font-mono); font-size: 10px; color: var(--cyan-dim);
+      border: 1px solid var(--border); padding: 3px 10px; border-radius: 100px;
+      letter-spacing: 0.06em; white-space: nowrap; flex-shrink: 0;
     }
 
-    /* ── LAYOUT ── */
-    .layout {
-      display: grid;
-      grid-template-columns: 1fr 316px;
-      flex: 1;
-    }
+    /* Layout */
+    .layout { display: grid; grid-template-columns: 1fr 316px; flex: 1; }
 
-    /* ── MAIN PANEL ── */
-    .main-panel {
-      padding: 28px 28px 28px 36px;
-      border-right: 1px solid var(--border);
-      overflow-x: auto;
-      min-width: 0;
-    }
-
-    /* Section header */
-    .sec-hd {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 18px;
-    }
+    /* Main */
+    .main-panel { padding: 28px 28px 28px 36px; border-right: 1px solid var(--border); overflow-x: auto; min-width: 0; }
+    .sec-hd { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
     .sec-tag {
       font-family: var(--font-mono); font-size: 10px; font-weight: 700;
-      color: var(--cyan);
-      background: rgba(0,210,255,0.07);
-      border: 1px solid var(--border-hi);
-      border-radius: 4px; padding: 2px 8px; letter-spacing: 0.10em;
+      color: var(--cyan); background: rgba(0,210,255,0.07);
+      border: 1px solid var(--border-hi); border-radius: 4px; padding: 2px 8px; letter-spacing: 0.10em;
     }
     .sec-name {
-      font-size: 12px; font-weight: 600;
-      color: var(--text-muted); letter-spacing: 0.07em; text-transform: uppercase;
-      white-space: nowrap;
+      font-size: 12px; font-weight: 600; color: var(--text-muted);
+      letter-spacing: 0.07em; text-transform: uppercase; white-space: nowrap;
     }
     .sec-actions { margin-left: auto; display: flex; gap: 8px; }
 
     /* Buttons */
     .btn {
       font-family: var(--font-sans); font-size: 12px; font-weight: 500;
-      padding: 6px 14px; border-radius: 6px;
-      border: 1px solid var(--border);
-      background: transparent; color: var(--text-muted);
-      cursor: pointer; letter-spacing: 0.03em;
-      transition: all 0.13s; white-space: nowrap;
+      padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
+      background: transparent; color: var(--text-muted); cursor: pointer;
+      letter-spacing: 0.03em; transition: all 0.13s; white-space: nowrap;
     }
-    .btn:hover {
-      border-color: var(--border-hi); color: var(--text);
-      background: rgba(0,210,255,0.05);
-    }
+    .btn:hover { border-color: var(--border-hi); color: var(--text); background: rgba(0,210,255,0.05); }
     .btn-primary {
-      background: var(--cyan); color: #070c12;
-      border-color: var(--cyan); font-weight: 700;
-      padding: 11px 20px; font-size: 13px;
-      box-shadow: 0 0 18px var(--cyan-glow);
-      width: 100%;
+      background: var(--cyan); color: #070c12; border-color: var(--cyan);
+      font-weight: 700; padding: 11px 20px; font-size: 13px;
+      box-shadow: 0 0 18px var(--cyan-glow); width: 100%;
     }
-    .btn-primary:hover {
-      background: oklch(87% 0.17 198);
-      box-shadow: 0 0 28px oklch(80% 0.17 198 / 0.38);
-    }
-    .btn-primary:disabled {
-      opacity: 0.35; cursor: not-allowed; box-shadow: none;
-    }
+    .btn-primary:hover { background: oklch(87% 0.17 198); box-shadow: 0 0 28px oklch(80% 0.17 198 / 0.38); }
+    .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
 
-    /* ── PERIODIC TABLE ── */
+    /* Periodic table */
     .pt-wrap { min-width: 860px; }
     .pt-grid {
       display: grid;
       grid-template-columns: repeat(18, minmax(44px, 1fr));
-      grid-template-rows: repeat(10, 50px);
+      grid-template-rows: repeat(9, 50px);
       gap: 3px;
     }
-
     .el {
-      border: 1px solid transparent;
-      border-radius: 4px;
-      padding: 3px 3px 2px;
-      cursor: pointer;
-      display: flex; flex-direction: column;
+      border: 1px solid transparent; border-radius: 4px; padding: 3px 3px 2px;
+      cursor: pointer; display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      transition: transform 0.11s, box-shadow 0.11s, background 0.11s;
-      position: relative;
-      overflow: hidden;
+      transition: transform 0.11s, background 0.11s; position: relative; overflow: hidden;
     }
     .el:hover { transform: scale(1.10); z-index: 20; }
-    .el-num {
-      font-family: var(--font-mono); font-size: 7.5px; font-weight: 400;
-      line-height: 1; color: inherit; opacity: 0.65; align-self: flex-start;
-    }
-    .el-sym {
-      font-family: var(--font-mono); font-size: 16px; font-weight: 700;
-      line-height: 1.1; color: inherit;
-    }
-    .el-kr {
-      font-size: 6px; font-weight: 400; line-height: 1;
-      color: inherit; opacity: 0.72; text-align: center;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
-    }
-    .el-mass {
-      font-family: var(--font-mono); font-size: 5.5px; line-height: 1;
-      color: inherit; opacity: 0.50;
-    }
-
-    /* Selected */
+    .el-num { font-family: var(--font-mono); font-size: 7.5px; font-weight: 400; line-height: 1; color: inherit; opacity: 0.65; align-self: flex-start; }
+    .el-sym { font-family: var(--font-mono); font-size: 16px; font-weight: 700; line-height: 1.1; color: inherit; }
+    .el-kr  { font-size: 6px; font-weight: 400; line-height: 1; color: inherit; opacity: 0.72; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .el-mass{ font-family: var(--font-mono); font-size: 5.5px; line-height: 1; color: inherit; opacity: 0.50; }
     .el.sel {
       border-color: var(--cyan) !important;
       background: rgba(0,210,255,0.13) !important;
@@ -209,85 +125,52 @@
     }
     .el.sel .el-sym { color: var(--cyan); text-shadow: 0 0 7px var(--cyan); }
     .el.sel .el-num, .el.sel .el-kr, .el.sel .el-mass { color: var(--cyan); }
-
-    /* Empty / placeholder */
     .el-empty { pointer-events: none; background: transparent !important; border: none !important; }
-    .el-fblock-lbl {
-      pointer-events: none;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-mono); font-size: 15px;
-      color: var(--text-dim); opacity: 0.4;
-    }
+    .el-flbl { pointer-events: none; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 15px; color: var(--text-dim); opacity: 0.4; }
 
-    /* Category palette */
-    .cat-alkali        { background: rgba(239,68,68,0.09);   color: #fca5a5; border-color: rgba(239,68,68,0.14); }
-    .cat-alkali-earth  { background: rgba(249,115,22,0.09);  color: #fdba74; border-color: rgba(249,115,22,0.14); }
-    .cat-transition    { background: rgba(234,179,8,0.07);   color: #fde68a; border-color: rgba(234,179,8,0.12); }
-    .cat-post          { background: rgba(34,197,94,0.08);   color: #86efac; border-color: rgba(34,197,94,0.12); }
-    .cat-metalloid     { background: rgba(20,184,166,0.09);  color: #5eead4; border-color: rgba(20,184,166,0.14); }
-    .cat-nonmetal      { background: rgba(56,189,248,0.09);  color: #7dd3fc; border-color: rgba(56,189,248,0.14); }
-    .cat-halogen       { background: rgba(99,102,241,0.10);  color: #a5b4fc; border-color: rgba(99,102,241,0.15); }
-    .cat-noble         { background: rgba(168,85,247,0.09);  color: #d8b4fe; border-color: rgba(168,85,247,0.14); }
-    .cat-lanthanide    { background: rgba(236,72,153,0.08);  color: #f9a8d4; border-color: rgba(236,72,153,0.12); }
-    .cat-actinide      { background: rgba(244,63,94,0.07);   color: #fda4af; border-color: rgba(244,63,94,0.10); }
-
-    .el:hover.cat-alkali        { background: rgba(239,68,68,0.20) !important; }
-    .el:hover.cat-alkali-earth  { background: rgba(249,115,22,0.20) !important; }
-    .el:hover.cat-transition    { background: rgba(234,179,8,0.16) !important; }
-    .el:hover.cat-post          { background: rgba(34,197,94,0.16) !important; }
-    .el:hover.cat-metalloid     { background: rgba(20,184,166,0.18) !important; }
-    .el:hover.cat-nonmetal      { background: rgba(56,189,248,0.18) !important; }
-    .el:hover.cat-halogen       { background: rgba(99,102,241,0.18) !important; }
-    .el:hover.cat-noble         { background: rgba(168,85,247,0.18) !important; }
-    .el:hover.cat-lanthanide    { background: rgba(236,72,153,0.15) !important; }
-    .el:hover.cat-actinide      { background: rgba(244,63,94,0.14) !important; }
-
-    /* Spacer row */
-    .pt-spacer { grid-column: 1 / -1; height: 8px; }
+    .cat-alkali       { background: rgba(239,68,68,0.09);   color: #fca5a5; border-color: rgba(239,68,68,0.14); }
+    .cat-alkali-earth { background: rgba(249,115,22,0.09);  color: #fdba74; border-color: rgba(249,115,22,0.14); }
+    .cat-transition   { background: rgba(234,179,8,0.07);   color: #fde68a; border-color: rgba(234,179,8,0.12); }
+    .cat-post         { background: rgba(34,197,94,0.08);   color: #86efac; border-color: rgba(34,197,94,0.12); }
+    .cat-metalloid    { background: rgba(20,184,166,0.09);  color: #5eead4; border-color: rgba(20,184,166,0.14); }
+    .cat-nonmetal     { background: rgba(56,189,248,0.09);  color: #7dd3fc; border-color: rgba(56,189,248,0.14); }
+    .cat-halogen      { background: rgba(99,102,241,0.10);  color: #a5b4fc; border-color: rgba(99,102,241,0.15); }
+    .cat-noble        { background: rgba(168,85,247,0.09);  color: #d8b4fe; border-color: rgba(168,85,247,0.14); }
+    .cat-lanthanide   { background: rgba(236,72,153,0.08);  color: #f9a8d4; border-color: rgba(236,72,153,0.12); }
+    .cat-actinide     { background: rgba(244,63,94,0.07);   color: #fda4af; border-color: rgba(244,63,94,0.10); }
+    .el:hover.cat-alkali       { background: rgba(239,68,68,0.20) !important; }
+    .el:hover.cat-alkali-earth { background: rgba(249,115,22,0.20) !important; }
+    .el:hover.cat-transition   { background: rgba(234,179,8,0.16) !important; }
+    .el:hover.cat-post         { background: rgba(34,197,94,0.16) !important; }
+    .el:hover.cat-metalloid    { background: rgba(20,184,166,0.18) !important; }
+    .el:hover.cat-nonmetal     { background: rgba(56,189,248,0.18) !important; }
+    .el:hover.cat-halogen      { background: rgba(99,102,241,0.18) !important; }
+    .el:hover.cat-noble        { background: rgba(168,85,247,0.18) !important; }
+    .el:hover.cat-lanthanide   { background: rgba(236,72,153,0.15) !important; }
+    .el:hover.cat-actinide     { background: rgba(244,63,94,0.14) !important; }
 
     /* Legend */
-    .legend {
-      display: flex; flex-wrap: wrap; gap: 6px 14px;
-      margin-top: 16px; padding-top: 14px;
-      border-top: 1px solid var(--border);
-    }
+    .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
     .legend-item { display: flex; align-items: center; gap: 5px; }
-    .legend-dot { width: 9px; height: 9px; border-radius: 2px; }
-    .legend-label { font-size: 10.5px; color: var(--text-muted); }
+    .legend-dot  { width: 9px; height: 9px; border-radius: 2px; }
+    .legend-lbl  { font-size: 10.5px; color: var(--text-muted); }
 
-    /* ── SIDEBAR ── */
-    .sidebar {
-      padding: 28px 24px;
-      display: flex; flex-direction: column; gap: 16px;
-      overflow-y: auto;
-    }
+    /* Sidebar */
+    .sidebar { padding: 28px 24px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
     .sidebar::-webkit-scrollbar { width: 4px; }
     .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-    .panel {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px 18px;
-    }
-    .panel-hd {
-      display: flex; align-items: center; gap: 8px;
-      margin-bottom: 14px; padding-bottom: 10px;
-      border-bottom: 1px solid var(--border);
-    }
+    .panel { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+    .panel-hd { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
     .panel-title { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; white-space: nowrap; }
     .panel-badge {
-      margin-left: auto;
-      font-family: var(--font-mono); font-size: 11px;
+      margin-left: auto; font-family: var(--font-mono); font-size: 11px;
       color: var(--cyan); background: rgba(0,210,255,0.08);
       border: 1px solid var(--border); border-radius: 100px; padding: 1px 8px;
     }
 
-    /* Selected chips */
-    .chips {
-      display: flex; flex-wrap: wrap; gap: 4px;
-      max-height: 88px; overflow-y: auto;
-    }
+    /* Chips */
+    .chips { display: flex; flex-wrap: wrap; gap: 4px; max-height: 88px; overflow-y: auto; }
     .chips::-webkit-scrollbar { width: 3px; }
     .chips::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
     .chip {
@@ -300,79 +183,81 @@
     .chips-empty { font-size: 12px; color: var(--text-dim); font-style: italic; }
 
     /* Settings */
-    .setting-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 7px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
-    }
+    .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
     .setting-row:last-child { border-bottom: none; }
     .setting-label { font-size: 12px; color: var(--text-muted); font-weight: 500; white-space: nowrap; }
     .setting-right { display: flex; align-items: center; gap: 5px; }
     .setting-input {
-      width: 70px;
-      background: var(--bg3); border: 1px solid var(--border);
+      width: 70px; background: var(--bg3); border: 1px solid var(--border);
       border-radius: 5px; color: var(--text);
       font-family: var(--font-mono); font-size: 13px; font-weight: 500;
       padding: 5px 8px; text-align: right;
       transition: border-color 0.13s, box-shadow 0.13s; outline: none;
     }
-    .setting-input:focus {
-      border-color: var(--cyan-dim);
-      box-shadow: 0 0 0 2px rgba(0,210,255,0.09);
-    }
+    .setting-input:focus { border-color: var(--cyan-dim); box-shadow: 0 0 0 2px rgba(0,210,255,0.09); }
     .setting-unit { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
 
     /* Font tag */
     .font-tag {
-      display: flex; align-items: center; gap: 8px;
-      padding: 9px 11px; background: var(--bg3);
-      border: 1px solid var(--border); border-radius: 6px;
-      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px; padding: 9px 11px;
+      background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 12px;
     }
     .font-tag-label { font-size: 11px; color: var(--text-dim); }
-    .font-tag-val {
-      font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted);
-      margin-left: auto; letter-spacing: 0.02em;
-    }
+    .font-tag-val { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted); margin-left: auto; }
 
-    /* Generate hint */
+    /* Generate */
     .gen-hint {
       font-family: var(--font-mono); font-size: 10px; color: var(--text-dim);
-      line-height: 1.65; margin-bottom: 12px;
-      padding: 10px 12px; background: var(--bg3);
-      border: 1px solid var(--border); border-radius: 6px;
+      line-height: 1.65; margin-bottom: 12px; padding: 10px 12px;
+      background: var(--bg3); border: 1px solid var(--border); border-radius: 6px;
     }
     .gen-hint strong { color: var(--text-muted); font-weight: 600; }
 
     /* Log */
     .log-wrap {
-      background: var(--bg3); border: 1px solid var(--border);
-      border-radius: 6px; padding: 10px 12px;
-      max-height: 120px; overflow-y: auto;
-      font-family: var(--font-mono); font-size: 10.5px;
-      color: var(--text-muted); line-height: 1.7;
+      background: var(--bg3); border: 1px solid var(--border); border-radius: 6px;
+      padding: 10px 12px; max-height: 120px; overflow-y: auto;
+      font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted); line-height: 1.7;
+      margin-top: 10px;
     }
-    .log-wrap::-webkit-scrollbar { width: 3px; }
-    .log-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-    .log-line-ok   { color: oklch(75% 0.15 150); }
-    .log-line-warn { color: oklch(80% 0.17 50); }
-    .log-line-info { color: var(--text-muted); }
+    .log-ok   { color: oklch(75% 0.15 150); }
+    .log-warn { color: oklch(80% 0.17 50); }
 
     /* Toast */
     .toast {
       position: fixed; bottom: 28px; left: 50%;
       transform: translateX(-50%) translateY(72px);
       background: var(--bg2); border: 1px solid var(--border-hi);
-      border-radius: 8px; padding: 11px 18px;
-      font-size: 13px; color: var(--text);
-      box-shadow: 0 8px 28px rgba(0,0,0,0.55);
-      z-index: 9999;
+      border-radius: 8px; padding: 11px 18px; font-size: 13px; color: var(--text);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.55); z-index: 9999;
       transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
       white-space: nowrap; pointer-events: none;
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
 
-    /* Scrollbar global */
+    /* Tweaks panel */
+    .twk-panel {
+      position: fixed; right: 16px; bottom: 16px; z-index: 2147483646; width: 260px;
+      max-height: calc(100vh - 32px); display: flex; flex-direction: column;
+      background: rgba(12,21,32,0.95); color: var(--text);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-hi); border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+      font: 12px/1.4 var(--font-sans); overflow: hidden;
+    }
+    .twk-hd { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px 10px 14px; cursor: move; user-select: none; border-bottom: 1px solid var(--border); }
+    .twk-hd b { font-size: 12px; font-weight: 600; color: var(--cyan); letter-spacing: 0.06em; }
+    .twk-x { appearance: none; border: 0; background: transparent; color: var(--text-dim); width: 22px; height: 22px; border-radius: 6px; cursor: pointer; font-size: 13px; line-height: 1; }
+    .twk-x:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+    .twk-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+    .twk-sect { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cyan-dim); padding: 4px 0 0; }
+    .twk-row-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .twk-lbl { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+    .twk-toggle { position: relative; width: 32px; height: 18px; border: 0; border-radius: 999px; background: rgba(255,255,255,0.12); transition: background 0.15s; cursor: pointer; padding: 0; flex-shrink: 0; }
+    .twk-toggle[data-on="1"] { background: var(--cyan); }
+    .twk-toggle i { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.3); transition: transform 0.15s; display: block; }
+    .twk-toggle[data-on="1"] i { transform: translateX(14px); }
+
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: rgba(0,210,255,0.18); border-radius: 3px; }
@@ -382,9 +267,9 @@
 <div id="root"></div>
 
 <script type="text/babel">
-const { useState, useCallback, useRef, useMemo } = React;
+const { useState, useCallback, useRef, useMemo, useEffect } = React;
 
-/* ── Element data (matches app.js exactly) ────────────────────────────── */
+/* ── Element data ─────────────────────────────────────────────────── */
 const E_RAW = [
 [1,'H',1,1],[2,'He',1,18],[3,'Li',2,1],[4,'Be',2,2],[5,'B',2,13],[6,'C',2,14],[7,'N',2,15],[8,'O',2,16],[9,'F',2,17],[10,'Ne',2,18],
 [11,'Na',3,1],[12,'Mg',3,2],[13,'Al',3,13],[14,'Si',3,14],[15,'P',3,15],[16,'S',3,16],[17,'Cl',3,17],[18,'Ar',3,18],
@@ -402,36 +287,14 @@ const AW = {H:'1.008',He:'4.0026',Li:'6.94',Be:'9.0122',B:'10.81',C:'12.011',N:'
 
 const KR = {H:'수소',He:'헬륨',Li:'리튬',Be:'베릴륨',B:'붕소',C:'탄소',N:'질소',O:'산소',F:'플루오린',Ne:'네온',Na:'나트륨',Mg:'마그네슘',Al:'알루미늄',Si:'규소',P:'인',S:'황',Cl:'염소',Ar:'아르곤',K:'칼륨',Ca:'칼슘',Sc:'스칸듐',Ti:'티타늄',V:'바나듐',Cr:'크로뮴',Mn:'망가니즈',Fe:'철',Co:'코발트',Ni:'니켈',Cu:'구리',Zn:'아연',Ga:'갈륨',Ge:'게르마늄',As:'비소',Se:'셀레늄',Br:'브로민',Kr:'크립톤',Rb:'루비듐',Sr:'스트론튬',Y:'이트륨',Zr:'지르코늄',Nb:'나이오븀',Mo:'몰리브데넘',Tc:'테크네튬',Ru:'루테늄',Rh:'로듐',Pd:'팔라듐',Ag:'은',Cd:'카드뮴',In:'인듐',Sn:'주석',Sb:'안티모니',Te:'텔루륨',I:'아이오딘',Xe:'제논',Cs:'세슘',Ba:'바륨',La:'란타넘',Ce:'세륨',Pr:'프라세오디뮴',Nd:'네오디뮴',Pm:'프로메튬',Sm:'사마륨',Eu:'유로퓸',Gd:'가돌리늄',Tb:'터븀',Dy:'디스프로슘',Ho:'홀뮴',Er:'어븀',Tm:'툴륨',Yb:'이터븀',Lu:'루테튬',Hf:'하프늄',Ta:'탄탈럼',W:'텅스텐',Re:'레늄',Os:'오스뮴',Ir:'이리듐',Pt:'백금',Au:'금',Hg:'수은',Tl:'탈륨',Pb:'납',Bi:'비스무트',Po:'폴로늄',At:'아스타틴',Rn:'라돈',Fr:'프랑슘',Ra:'라듐',Ac:'악티늄',Th:'토륨',Pa:'프로트악티늄',U:'우라늄',Np:'넵투늄',Pu:'플루토늄',Am:'아메리슘',Cm:'퀴륨',Bk:'버클륨',Cf:'캘리포늄',Es:'아인슈타이늄',Fm:'페르뮴',Md:'멘델레븀',No:'노벨륨',Lr:'로렌슘',Rf:'러더포듐',Db:'더브늄',Sg:'시보귬',Bh:'보륨',Hs:'하슘',Mt:'마이트너륨',Ds:'다름슈타튬',Rg:'뢴트게늄',Cn:'코페르니슘',Nh:'니호늄',Fl:'플레로븀',Mc:'모스코븀',Lv:'리버모륨',Ts:'테네신',Og:'오가네손'};
 
-// Category by atomic number
 const CAT = {};
-const catMap = [
-  ['alkali',       [3,11,19,37,55,87]],
-  ['alkali-earth', [4,12,20,38,56,88]],
-  ['lanthanide',   [57,58,59,60,61,62,63,64,65,66,67,68,69,70,71]],
-  ['actinide',     [89,90,91,92,93,94,95,96,97,98,99,100,101,102,103]],
-  ['transition',   [21,22,23,24,25,26,27,28,29,30,39,40,41,42,43,44,45,46,47,48,72,73,74,75,76,77,78,79,80,104,105,106,107,108,109,110,111,112]],
-  ['post',         [13,31,32,49,50,81,82,83,84,113,114,115,116]],
-  ['metalloid',    [5,14,32,33,51,52,84]],
-  ['halogen',      [9,17,35,53,85,117]],
-  ['noble',        [2,10,18,36,54,86,118]],
-  ['nonmetal',     [1,6,7,8,15,16,34]],
-];
-catMap.forEach(([cat, nums]) => nums.forEach(n => CAT[n] = cat));
+[['alkali',[3,11,19,37,55,87]],['alkali-earth',[4,12,20,38,56,88]],['lanthanide',[57,58,59,60,61,62,63,64,65,66,67,68,69,70,71]],['actinide',[89,90,91,92,93,94,95,96,97,98,99,100,101,102,103]],['transition',[21,22,23,24,25,26,27,28,29,30,39,40,41,42,43,44,45,46,47,48,72,73,74,75,76,77,78,79,80,104,105,106,107,108,109,110,111,112]],['post',[13,31,32,49,50,81,82,83,84,113,114,115,116]],['metalloid',[5,14,33,51,52]],['halogen',[9,17,35,53,85,117]],['noble',[2,10,18,36,54,86,118]],['nonmetal',[1,6,7,8,15,16,34]]
+].forEach(([c,ns]) => ns.forEach(n => CAT[n] = c));
 
-const CAT_LABELS = {
-  alkali: '알칼리 금속', 'alkali-earth': '알칼리 토금속',
-  transition: '전이 금속', post: '전이 후 금속',
-  metalloid: '준금속', nonmetal: '비금속',
-  halogen: '할로젠', noble: '비활성 기체',
-  lanthanide: '란타넘족', actinide: '악티늄족',
-};
-const CAT_COLORS = {
-  alkali:'#fca5a5','alkali-earth':'#fdba74',transition:'#fde68a',post:'#86efac',
-  metalloid:'#5eead4',nonmetal:'#7dd3fc',halogen:'#a5b4fc',noble:'#d8b4fe',
-  lanthanide:'#f9a8d4',actinide:'#fda4af',
-};
+const CAT_LABELS = {alkali:'알칼리 금속','alkali-earth':'알칼리 토금속',transition:'전이 금속',post:'전이 후 금속',metalloid:'준금속',nonmetal:'비금속',halogen:'할로젠',noble:'비활성 기체',lanthanide:'란타넘족',actinide:'악티늄족'};
+const CAT_COLORS = {alkali:'#fca5a5','alkali-earth':'#fdba74',transition:'#fde68a',post:'#86efac',metalloid:'#5eead4',nonmetal:'#7dd3fc',halogen:'#a5b4fc',noble:'#d8b4fe',lanthanide:'#f9a8d4',actinide:'#fda4af'};
 
-/* ── SCAD generation (identical to app.js) ─────────────────────────── */
+/* ── SCAD generation ─────────────────────────────────────────────── */
 const MODEL_BODY = `corner_radius = 5;
 base_thickness = 4;
 frame_width = 1.8;
@@ -459,40 +322,102 @@ module tile() { difference() { union() { base_body(); top_outer_frame(); texts()
 if (show_tile) tile();`;
 
 function makeScad([z, s], o) {
-  const n = KR[s] || s;
-  const w = AW[s] || String(z);
+  const n = KR[s] || s, w = AW[s] || String(z);
   return `symbol = "${s}";\nname = "${n}";\nnumber = "${w}";\natomic_number = "${z}";\nfont_name = "${o.fontName}";\nshow_tile = true;\nshow_connector = false;\ntile_size = ${o.tileSize};\nsymbol_size = ${o.symbolSize};\nname_size = ${o.nameSize};\nnumber_size = ${o.numberSize};\natomic_size = ${o.atomicSize};\n${MODEL_BODY}\n`;
 }
 
 const BAT = `@echo off\r\nset OPENSCAD_EXE=C:\\Program Files\\OpenSCAD\\openscad.exe\r\nif not exist "%OPENSCAD_EXE%" (\r\n  echo OpenSCAD 경로를 찾을 수 없습니다: %OPENSCAD_EXE%\r\n  echo convert_to_stl.bat 파일에서 경로를 수정하세요.\r\n  pause\r\n  exit /b 1\r\n)\r\nif not exist stl mkdir stl\r\nfor %%f in (*.scad) do (\r\n  "%OPENSCAD_EXE%" -o "stl\\%%~nf.stl" "%%f"\r\n)\r\necho 완료: %cd%\\stl 폴더 확인\r\npause\r\n`;
 const SH  = `#!/usr/bin/env bash\nset -euo pipefail\ncommand -v openscad >/dev/null || { echo "OpenSCAD 없음"; exit 1; }\nmkdir -p stl\nfor f in *.scad; do b="\${f%.scad}"; openscad -o "stl/\${b}.stl" "\$f"; done\necho "완료: \$(pwd)/stl 폴더 확인"\n`;
 
-const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "showKorean": true,
-  "showMass": true
-}/*EDITMODE-END*/;
+/* ── Tweaks components (inline — no external file needed) ────────── */
+function useTweaks(defaults) {
+  const [values, setValues] = useState(defaults);
+  const setTweak = useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null ? keyOrEdits : { [keyOrEdits]: val };
+    setValues(prev => ({ ...prev, ...edits }));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+  }, []);
+  return [values, setTweak];
+}
 
-/* ── App ──────────────────────────────────────────────────────────── */
+function TweaksPanel({ children }) {
+  const [open, setOpen] = useState(false);
+  const dragRef = useRef(null);
+  const offsetRef = useRef({ x: 16, y: 16 });
+  const clamp = useCallback(() => {
+    const p = dragRef.current; if (!p) return;
+    const maxX = window.innerWidth - p.offsetWidth - 16;
+    const maxY = window.innerHeight - p.offsetHeight - 16;
+    offsetRef.current = { x: Math.min(Math.max(16, offsetRef.current.x), maxX), y: Math.min(Math.max(16, offsetRef.current.y), maxY) };
+    p.style.right = offsetRef.current.x + 'px';
+    p.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+  useEffect(() => {
+    const onMsg = e => {
+      if (e?.data?.type === '__activate_edit_mode') setOpen(true);
+      else if (e?.data?.type === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+  const dismiss = () => { setOpen(false); window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*'); };
+  const onDragStart = e => {
+    const p = dragRef.current; if (!p) return;
+    const r = p.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const sr = window.innerWidth - r.right, sb = window.innerHeight - r.bottom;
+    const move = ev => { offsetRef.current = { x: sr - (ev.clientX - sx), y: sb - (ev.clientY - sy) }; clamp(); };
+    const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
+  };
+  if (!open) return null;
+  return (
+    <div ref={dragRef} className="twk-panel" style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+      <div className="twk-hd" onMouseDown={onDragStart}>
+        <b>TWEAKS</b>
+        <button className="twk-x" onMouseDown={e => e.stopPropagation()} onClick={dismiss}>✕</button>
+      </div>
+      <div className="twk-body">{children}</div>
+    </div>
+  );
+}
+
+function TweakSection({ title }) {
+  return <div className="twk-sect">{title}</div>;
+}
+
+function TweakToggle({ label, value, onChange }) {
+  return (
+    <div className="twk-row-h">
+      <span className="twk-lbl">{label}</span>
+      <button type="button" className="twk-toggle" data-on={value ? '1' : '0'}
+        onClick={() => onChange(!value)}><i></i></button>
+    </div>
+  );
+}
+
+/* ── App ─────────────────────────────────────────────────────────── */
 function App() {
   const [selected, setSelected] = useState(new Set());
   const [settings, setSettings] = useState({ tileSize:80, symbolSize:25, nameSize:7, atomicSize:7, numberSize:7 });
   const [logs, setLogs]         = useState([]);
   const [toast, setToast]       = useState({ show:false, msg:'' });
   const [generating, setGenerating] = useState(false);
-  const [tweaks, setTweak]      = useTweaks(TWEAK_DEFAULTS);
+  const [tweaks, setTweak]      = useTweaks({ showKorean:true, showMass:true });
   const toastTimer = useRef(null);
 
-  const showToast = (msg) => {
+  const showToast = msg => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
     setToast({ show:true, msg });
     toastTimer.current = setTimeout(() => setToast(t => ({...t, show:false})), 2600);
   };
 
-  const toggle = useCallback((z) => {
+  const toggle = useCallback(z => {
     setSelected(prev => { const n = new Set(prev); n.has(z) ? n.delete(z) : n.add(z); return n; });
   }, []);
 
-  const selectAll = () => { setSelected(new Set(E_RAW.map(e=>e[0]))); showToast(`전체 ${E_RAW.length}개 원소 선택됨`); };
+  const selectAll = () => { setSelected(new Set(E_RAW.map(e => e[0]))); showToast(`전체 ${E_RAW.length}개 원소 선택됨`); };
   const clearAll  = () => { setSelected(new Set()); showToast('선택 해제됨'); };
 
   const setSetting = (key, val) => {
@@ -502,8 +427,7 @@ function App() {
 
   const handleGenerate = async () => {
     if (selected.size === 0) { showToast('⚠ 원소를 먼저 선택하세요'); return; }
-    setGenerating(true);
-    setLogs([]);
+    setGenerating(true); setLogs([]);
     const o = { fontName:'NanumGothic:style=Regular', ...settings };
     const zip = new JSZip();
     const newLogs = [];
@@ -512,7 +436,7 @@ function App() {
       newLogs.push({ type:'ok', text:`추가됨: ${e[0]}_${e[1]}.scad` });
     });
     zip.file('convert_to_stl.bat', BAT);
-    zip.file('convert_to_stl.sh',  SH);
+    zip.file('convert_to_stl.sh', SH);
     setLogs(newLogs);
     const blob = await zip.generateAsync({ type:'blob' });
     const a = document.createElement('a');
@@ -523,52 +447,36 @@ function App() {
     setGenerating(false);
   };
 
-  /* Build grid: 9 rows (rows 1-7 main, row 8=f-block lant, row 9=actinide) */
+  /* Build grid */
   const gridCells = useMemo(() => {
     const map = {};
     E_RAW.forEach(e => { map[`${e[2]}-${e[3]}`] = e; });
     const cells = [];
     for (let r = 1; r <= 9; r++) {
-      // Insert visual gap between row 7 and f-block
       if (r === 8) {
-        cells.push(<div key="gap" style={{ gridColumn:'1 / -1', gridRow:'8', height:'6px' }} />);
-        // f-block row label (col 1-3)
-        cells.push(<div key="lant-ast" className="el el-empty el-fblock-lbl" style={{ gridColumn:3, gridRow:8 }}>*</div>);
+        cells.push(<div key="gap" style={{ gridColumn:'1/-1', gridRow:8, height:'6px' }} />);
+        cells.push(<div key="lant-ast" className="el el-empty el-flbl" style={{ gridColumn:3, gridRow:8 }}>*</div>);
       }
       if (r === 9) {
-        cells.push(<div key="act-ast" className="el el-empty el-fblock-lbl" style={{ gridColumn:3, gridRow:9 }}>*</div>);
+        cells.push(<div key="act-ast" className="el el-empty el-flbl" style={{ gridColumn:3, gridRow:9 }}>*</div>);
       }
       for (let c = 1; c <= 18; c++) {
+        if (r === 6 && c === 3) { cells.push(<div key="la-br" className="el el-empty cat-lanthanide" style={{ gridColumn:3, gridRow:6, opacity:0.4 }}><span style={{fontFamily:'monospace',fontSize:'14px'}}>*</span></div>); continue; }
+        if (r === 7 && c === 3) { cells.push(<div key="ac-br" className="el el-empty cat-actinide"  style={{ gridColumn:3, gridRow:7, opacity:0.4 }}><span style={{fontFamily:'monospace',fontSize:'14px'}}>*</span></div>); continue; }
         const e = map[`${r}-${c}`];
-        // La bridge cell (row 6 col 3)
-        if (r === 6 && c === 3) {
-          cells.push(<div key="la-bridge" className="el el-empty cat-lanthanide" style={{ gridColumn:3, gridRow:6, opacity:0.4 }}><span style={{fontFamily:'var(--font-mono)',fontSize:'14px'}}>*</span></div>);
-          continue;
-        }
-        // Ac bridge cell (row 7 col 3)
-        if (r === 7 && c === 3) {
-          cells.push(<div key="ac-bridge" className="el el-empty cat-actinide" style={{ gridColumn:3, gridRow:7, opacity:0.4 }}><span style={{fontFamily:'var(--font-mono)',fontSize:'14px'}}>*</span></div>);
-          continue;
-        }
-        if (!e) {
-          cells.push(<div key={`emp-${r}-${c}`} className="el el-empty" style={{ gridColumn:c, gridRow:r }} />);
-          continue;
-        }
+        if (!e) { cells.push(<div key={`e-${r}-${c}`} className="el el-empty" style={{ gridColumn:c, gridRow:r }} />); continue; }
         const [z, sym] = e;
         const cat = CAT[z] || 'nonmetal';
         const isSel = selected.has(z);
         cells.push(
-          <div
-            key={z}
-            className={`el cat-${cat}${isSel ? ' sel' : ''}`}
+          <div key={z} className={`el cat-${cat}${isSel ? ' sel' : ''}`}
             style={{ gridColumn:c, gridRow:r }}
             onClick={() => toggle(z)}
-            title={`${z} ${sym} — ${KR[sym] || sym} (${AW[sym] || z})`}
-          >
+            title={`${z} ${sym} — ${KR[sym]||sym} (${AW[sym]||z})`}>
             <span className="el-num">{z}</span>
             <span className="el-sym">{sym}</span>
-            {tweaks.showKorean && <span className="el-kr">{KR[sym] || ''}</span>}
-            {tweaks.showMass   && <span className="el-mass">{AW[sym] || ''}</span>}
+            {tweaks.showKorean && <span className="el-kr">{KR[sym]||''}</span>}
+            {tweaks.showMass   && <span className="el-mass">{AW[sym]||''}</span>}
           </div>
         );
       }
@@ -580,7 +488,6 @@ function App() {
 
   return (
     <>
-      {/* Header */}
       <header className="header">
         <div className="header-icon">Fe</div>
         <div className="header-titles">
@@ -590,7 +497,6 @@ function App() {
         <div className="header-pill">118 ELEMENTS</div>
       </header>
 
-      {/* Main layout */}
       <div className="layout">
         {/* Periodic table */}
         <div className="main-panel">
@@ -602,16 +508,13 @@ function App() {
               <button className="btn" onClick={clearAll}>전체 해제</button>
             </div>
           </div>
-
           <div className="pt-wrap">
             <div className="pt-grid">{gridCells}</div>
-
-            {/* Legend */}
             <div className="legend">
               {Object.entries(CAT_LABELS).map(([cat, label]) => (
                 <div key={cat} className="legend-item">
                   <div className="legend-dot" style={{ background: CAT_COLORS[cat], opacity:0.75 }} />
-                  <span className="legend-label">{label}</span>
+                  <span className="legend-lbl">{label}</span>
                 </div>
               ))}
             </div>
@@ -620,7 +523,7 @@ function App() {
 
         {/* Sidebar */}
         <div className="sidebar">
-          {/* Selected elements */}
+          {/* Selected */}
           <div className="panel">
             <div className="panel-hd">
               <span className="sec-tag">02</span>
@@ -629,13 +532,7 @@ function App() {
             </div>
             {selList.length === 0
               ? <p className="chips-empty">원소를 클릭해 선택하세요</p>
-              : (
-                <div className="chips">
-                  {selList.map(e => (
-                    <span key={e[0]} className="chip" onClick={() => toggle(e[0])} title="클릭해 해제">{e[1]}</span>
-                  ))}
-                </div>
-              )
+              : <div className="chips">{selList.map(e => <span key={e[0]} className="chip" onClick={() => toggle(e[0])} title="클릭해 해제">{e[1]}</span>)}</div>
             }
           </div>
 
@@ -649,21 +546,13 @@ function App() {
               <span className="font-tag-label">폰트</span>
               <span className="font-tag-val">NanumGothic:Regular</span>
             </div>
-            {[
-              ['타일 크기',    'tileSize'],
-              ['기호 크기',    'symbolSize'],
-              ['이름 크기',    'nameSize'],
-              ['원자번호 크기','atomicSize'],
-              ['원자량 크기',  'numberSize'],
-            ].map(([label, key]) => (
+            {[['타일 크기','tileSize'],['기호 크기','symbolSize'],['이름 크기','nameSize'],['원자번호 크기','atomicSize'],['원자량 크기','numberSize']].map(([label, key]) => (
               <div key={key} className="setting-row">
                 <span className="setting-label">{label}</span>
                 <div className="setting-right">
-                  <input
-                    type="number" className="setting-input"
+                  <input type="number" className="setting-input"
                     value={settings[key]} min="0.5" step="0.5"
-                    onChange={e => setSetting(key, e.target.value)}
-                  />
+                    onChange={e => setSetting(key, e.target.value)} />
                   <span className="setting-unit">mm</span>
                 </div>
               </div>
@@ -672,7 +561,7 @@ function App() {
 
           {/* Generate */}
           <div className="panel">
-            <div className="panel-hd" style={{ marginBottom:'12px' }}>
+            <div className="panel-hd">
               <span className="sec-tag">04</span>
               <span className="panel-title">생성</span>
             </div>
@@ -680,21 +569,15 @@ function App() {
               <strong>① SCAD ZIP 다운로드</strong><br />
               ② ZIP 압축 해제<br />
               ③ convert_to_stl<strong>.bat</strong> (Windows) 또는 <strong>.sh</strong> (Mac/Linux) 실행<br />
-              ④ stl 하위 폴더에서 STL 확인
+              ④ stl 폴더에서 STL 확인
             </div>
-            <button
-              className="btn btn-primary"
-              onClick={handleGenerate}
-              disabled={selected.size === 0 || generating}
-            >
+            <button className="btn btn-primary" onClick={handleGenerate}
+              disabled={selected.size === 0 || generating}>
               {generating ? '생성 중…' : `⬇  SCAD ZIP 만들기 (${selected.size}개)`}
             </button>
-
             {logs.length > 0 && (
-              <div className="log-wrap" style={{ marginTop:'10px' }}>
-                {logs.map((l, i) => (
-                  <div key={i} className={`log-line-${l.type}`}>{l.text}</div>
-                ))}
+              <div className="log-wrap">
+                {logs.map((l, i) => <div key={i} className={`log-${l.type}`}>{l.text}</div>)}
               </div>
             )}
           </div>
@@ -707,8 +590,8 @@ function App() {
       {/* Tweaks */}
       <TweaksPanel>
         <TweakSection title="표시 옵션" />
-        <TweakToggle label="한글 원소 이름" tweakKey="showKorean" />
-        <TweakToggle label="원자량" tweakKey="showMass" />
+        <TweakToggle label="한글 원소 이름" value={tweaks.showKorean} onChange={v => setTweak('showKorean', v)} />
+        <TweakToggle label="원자량" value={tweaks.showMass} onChange={v => setTweak('showMass', v)} />
       </TweaksPanel>
     </>
   );
